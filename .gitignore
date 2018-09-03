@@ -5,8 +5,6 @@
 *.pdf
 *.Rda
 *.csv
-!wse_listed_stocks_till_2017.csv
 !share_in_wig30.csv
-!index_company_isins.Rda
 !share_data.Rda
 !all_wig_30_companies_returns.Rda
