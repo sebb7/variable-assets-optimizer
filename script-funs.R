@@ -7,12 +7,8 @@ CompaniesInIndex <- function(date, share_data){
   return(tickers)
 }
 
-CompaniesWithRightQuotations <- function(tickers, number, date, all_returns){
-  # Returns vector with comapnies which have enough number of quotations
-  # given by `number` argument
-  
-  number_of_date <- which(date == index(all_returns), index(all_returns))
-  chunk <- all_returns[(number_of_date-number+1):number_of_date]
+CompaniesWithRightQuotations <- function(tickers, chunk){
+  # Returns vector with comapnies whose quotations dont have NAs
   
   # Check which companeis in chunk lacks data
   tickers_with_boolean <- sapply(tickers, function(x) anyNA(chunk[, x]))
@@ -20,21 +16,28 @@ CompaniesWithRightQuotations <- function(tickers, number, date, all_returns){
   return(updated_tickers)
 }
 
-ComputeMinPortfolio <- function(data){
+CompaniesStrategyChosen <- function(tickers, chunk){
+  tickers
+}
+
+ComputeMinPortfolio <- function(data, Spec, Constraints){
   # Computes weigths for min risk portfolio for given data
   # Returns data frame with comapny names and weights
+  results <- minvariancePortfolio(as.timeSeries(data), Spec, Constraints)
+  results@portfolio@portfolio$weights
+}
   
   # Compute initial weigths
-  min_portfolio_result <- minriskPortfolio(as.timeSeries(data), na.rm = TRUE)
-  initial_weights <- min_portfolio_result@spec@portfolio$weights
+ # min_portfolio_result <- minriskPortfolio(as.timeSeries(data), na.rm = TRUE)
+  #initial_weights <- min_portfolio_result@spec@portfolio$weights
   
   # Create weigths with comapnies names
-  m <- matrix(0, ncol = length(initial_weights), nrow = 0)
-  portfolio_comapnies <- data.frame(m)
-  portfolio_comapnies[1,] <- initial_weights
-  names(portfolio_comapnies) <- names(data)
-  return(portfolio_comapnies)
-}
+#  m <- matrix(0, ncol = length(initial_weights), nrow = 0)
+ # portfolio_comapnies <- data.frame(m)
+  #portfolio_comapnies[1,] <- initial_weights
+  #names(portfolio_comapnies) <- names(data)
+  # return(portfolio_comapnies)
+
 
 
 ComputeVariableMinPortfolio <- function(data){
