@@ -46,3 +46,4 @@ ComputeVariableMinPortfolio <- function(data){
   # Returns data frame with comapny names and weights
   
 }
+

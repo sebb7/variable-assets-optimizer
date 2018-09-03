@@ -7,7 +7,6 @@ library(fPortfolio)
 library(PerformanceAnalytics) #portfolio min
 library(xts)
 library(quantmod)
-library(plyr)
 
 # Add config
 source("config.R")
@@ -44,6 +43,10 @@ all_companies_tickers <- colnames(all_returns)
 df <- data.frame(matrix(ncol = ncol(all_returns), nrow = 1))
 colnames(df) <- colnames(all_returns)
 min_portfolio_weights <- xts(df, order.by = index(all_returns)[1])
+min_portfolio_weights <- min_portfolio_weights[-1]
+
+# Set indicator of past iterrations
+curr_i <- 0
 
 for(day in calc_period:length(all_returns)){
   
@@ -55,7 +58,7 @@ for(day in calc_period:length(all_returns)){
     # Dont calculate if there is no days enough 
     
     break
-  } else if(day %% recalc_freq == 0){
+  } else if(curr_i %% recalc_freq == 0){
     # Take action only every given number of days (`recalc_freq` from config file)
 
     calculation_chunk <- all_returns[(day-calc_period+1):day]
@@ -74,25 +77,33 @@ for(day in calc_period:length(all_returns)){
     # Calculate min risk portfolio for given tickers
     min_portfolio_chunk <- calculation_chunk[,chosen_companies]
     min_risk_weights <- ComputeMinPortfolio(min_portfolio_chunk, Spec, Constraints)
+    min_risk_weights <- t(as.data.frame(min_risk_weights))
     
-    # Change weights to xts with given next date day
-    current_weights <- xts(t(as.data.frame(min_risk_weights)),order.by = as.Date(next_day_date))
-    
-    # Add other companies with no weights
+    # Add other companies with 0 weights
     lacking_companies <- setdiff(all_companies_tickers, chosen_companies)
-    lacking_comapnies_matrix <- matrix(0, ncol = length(lacking_companies), nrow = 1)
+    lacking_comapnies_matrix <- matrix(ncol = length(lacking_companies))
+    lacking_comapnies_matrix[1,] <- numeric(length(lacking_companies))
     lacking_comapnies_df <- data.frame(lacking_comapnies_matrix)
     colnames(lacking_comapnies_df) <- lacking_companies
-    lacking_comapnies_xts <- xts(lacking_comapnies_df,order.by = as.Date(next_day_date))
-    current_weights <- cbind(current_weights, lacking_comapnies_xts)
+    min_risk_weights_with_lacking <- cbind(min_risk_weights, lacking_comapnies_df)
+    
+    # Sort new xts in order to add it into table with weights
+    min_risk_weights_with_lacking_ordered <- min_risk_weights_with_lacking[,all_companies_tickers]
+    
+    # Change weights to xts and set their date to next day
+    current_weights <- xts(min_risk_weights_with_lacking_ordered,order.by = as.Date(next_day_date))
     
     # Add calculated weights as weights for the next day 
-    min_portfolio_weights <- merge(min_portfolio_weights, current_weights, deparse.level = 1)
+    min_portfolio_weights <- rbind(min_portfolio_weights, current_weights)
     
-  } else{
-    
+  } else if(day > calc_period) {
+    # Add weights from current day to the next day with the next day date
+    current_weights <- xts(coredata(min_portfolio_weights[date]), order.by = as.Date(next_day_date))
+    min_portfolio_weights <- rbind(min_portfolio_weights, current_weights)
   }
+  curr_i = curr_i + 1
 }
+
 ################
 ################
 
