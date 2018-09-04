@@ -21,6 +21,7 @@ source("script-funs.R")
 # Load files for WIG30
 load(file = "./R_data/sample_wig_30_r_data/share_data.Rda")
 load(file = "./R_data/sample_wig_30_r_data/all_wig_30_companies_returns.Rda")
+load(file = "./R_data/sample_wig_30_r_data/stock_index_rr.Rda")
 
 # Chnage names of colums for returns xts
 for(i in 1:length(colnames(all_returns))){
@@ -104,44 +105,23 @@ for(day in calc_period:length(all_returns)){
   curr_i = curr_i + 1
 }
 
+# `min_portfolio_weights` indeicates dates in which comapnies shares were owned
+# Adjust dates of `all_returns` to `min_portfolio_weights`  dates
+
+valid_period_all_returns <- all_returns[index(min_portfolio_weights)]
+
 ################
 ################
+# Calculate weighted mean for each day
+Mean_rr <- numeric(nrow(valid_period_all_returns))
 
+for(i in 1:nrow(valid_period_all_returns)){
+  Mean_rr[i] <- weighted.mean(as.vector(valid_period_all_returns[i]), 
+                              as.vector(min_portfolio_weights[i]),
+                              na.rm = TRUE)
+}
+valid_period_all_returns$Mean_rr <- Mean_rr
+
+# Adjust `stock_index_rr`
+stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
   
-       
-    if(length(companies_in_index) != length(companies_valid_number_of_quotations)){
-      print(date)
-      print(calculation_chunk)
-      print(companies_in_index )
-      print(companies_valid_number_of_quotations)
-    }
-    
-
-    
-      print(i)
-      
-      i = i+1
-  
-      if(length(companies_in_index) != 30){
-    
-    print(date)
-    
-    print("aaa")
-    i = i+1
-    }
-     if(i <= 4){
-      print(date)
-      print(calculation_chunk)
-      
-      print("aaa")
-      print("aaa")
-      print("aaa")
-     }
-
-
-
-
-    
-
-
-
