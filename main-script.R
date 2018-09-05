@@ -54,16 +54,18 @@ for(day in calc_period:length(all_returns)){
   # Get current date and date for next day
   date <- index(all_returns[day])
   next_day_date <- index(all_returns[day + 1])
+
   
   if(day + recalc_freq > length(index(all_returns))){
     # Dont calculate if there is no days enough 
-    
+  
     break
-  } else if(curr_i %% recalc_freq == 0){
+    
+  } else if(curr_i %% recalc_freq == 0 | date %in% special_rebalancing_dates){
     # Take action only every given number of days (`recalc_freq` from config file)
 
     calculation_chunk <- all_returns[(day-calc_period+1):day]
-    
+
     # Get companies which are in index in given on portfolio recalculation
     companies_in_index <- CompaniesInIndex(date, share_data)
     
@@ -101,6 +103,7 @@ for(day in calc_period:length(all_returns)){
     # Add weights from current day to the next day with the next day date
     current_weights <- xts(coredata(min_portfolio_weights[date]), order.by = as.Date(next_day_date))
     min_portfolio_weights <- rbind(min_portfolio_weights, current_weights)
+    
   }
   curr_i = curr_i + 1
 }
@@ -112,6 +115,10 @@ valid_period_all_returns <- all_returns[index(min_portfolio_weights)]
 
 ################
 ################
+
+
+
+############### EFFICIENCY STRATEGY PORTFOLIO
 # Calculate weighted mean for each day
 Mean_rr <- numeric(nrow(valid_period_all_returns))
 
@@ -122,6 +129,12 @@ for(i in 1:nrow(valid_period_all_returns)){
 }
 valid_period_all_returns$Mean_rr <- Mean_rr
 
+
+
+############## EFFICIENCY MARKET PORTFOLIO
 # Adjust `stock_index_rr`
 stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
+
+# Efficiency 
+Return.cumulative(valid_period_all_returns$Mean_rr)
   
