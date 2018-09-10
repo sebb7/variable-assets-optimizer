@@ -28,6 +28,9 @@ for(i in 1:length(colnames(all_returns))){
   colnames(all_returns) <- lapply(colnames(all_returns), substr, start = 1, stop = 3)
 }
 
+# Consider valid dates for calculations
+all_returns <- all_returns[paste(start_date, "/", end_date, sep = "")]
+
 # Get vector with tickers of all companies
 all_companies_tickers <- colnames(all_returns)
 
@@ -58,7 +61,7 @@ for(day in calc_period:length(all_returns)){
   next_day_date <- index(all_returns[day + 1])
   
   if(day + recalc_freq > length(index(all_returns))){
-    # Dont calculate if there is no days enough 
+    # Dont calculate if there is no enough days 
   
     break
     
@@ -68,7 +71,7 @@ for(day in calc_period:length(all_returns)){
     calculation_chunk <- all_returns[(day-calc_period+1):day]
 
     # Get companies which are in index at the next day
-    companies_in_index_for_the_next_day <- CompaniesInIndex(next_day_date, share_data)
+    companies_in_index_for_the_next_day <- CompaniesInIndex(date, share_data)
     
     # Get comapnies with enough quotations (quantity valid with `calc_peroid`)
     companies_valid_number_of_quotations <-
@@ -140,7 +143,7 @@ Return.cumulative(valid_period_all_returns$Mean_rr)
 ############## INDEX
 # Adjust `stock_index_rr`
 stock_index_rr <- stock_index_rr[index(all_returns)]
-colnames(stock_index_rr) <- c("WIG30")
+colnames(stock_index_rr) <- c("WIG30TR")
 valid_period_stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
 Return.cumulative(valid_period_stock_index_rr)
 # Efficiency 

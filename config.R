@@ -10,7 +10,12 @@ calc_period <- 60
 recalc_freq <- 20
 
 # Set strategy
-strategy <- 1
+
+# 1 -> Calculate min risk portfolio for all comapanies in index
+# 2 -> Calculate min risk portfolio for rising comapnies in index
+# 3 -> Calculate portfolio for falling companies in index
+# 4 -> Calculate portfolio for random companies in index
+strategy <- 3
 
 # Set dates of removal of some comapnies from the stock exchange
 special_rebalancing_dates <- c("2015-09-24", "2018-01-16")

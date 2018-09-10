@@ -45,11 +45,29 @@ ComputeMinPortfolio <- function(data, Spec, Constraints){
 }
   
 RisingCompanies <- function(tickers, chunk){
-  
+  # Function returns ticker of companies whose mean return was > 0 in given
+  # chunk of data 
+  companies <- c()
+  for (ticker in tickers) {
+    mean_rr <- mean(chunk[,ticker])
+    if(mean_rr > 0){
+      companies <- (c(companies, ticker))
+    }
+  }
+  return(companies)
 }
 
 FallingCompanies <- function(tickers, chunk){
-  
+  # Function returns ticker of companies whose mean return was < 0 in given
+  # chunk of data 
+  companies <- c()
+  for (ticker in tickers) {
+    mean_rr <- mean(chunk[,ticker])
+    if(mean_rr < 0){
+      companies <- (c(companies, ticker))
+    }
+  }
+  return(companies)
 }
 
 ReturnsWhenInIndex <- function(all_returns, share_data){
