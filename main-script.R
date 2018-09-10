@@ -34,9 +34,11 @@ all_companies_tickers <- colnames(all_returns)
 
   
   
-################ Build xts with portfolio weights
+################ Build xts with portfolio weights according to given strategy
 ################
+# Portfolio weights for rebalancing are carried out at the and of trading day
 # Each weights calculated based on data from previous peroid are set for new peroid
+# E.g. on "2018-03-16" weights are calculated for "2018-03-17" plus next (recalc_freq - 1)
 # Start calculations after set of first min-variance portfolio
 # Calculate weights only evry `recalc_freq`
   
@@ -54,7 +56,6 @@ for(day in calc_period:length(all_returns)){
   # Get current date and date for next day
   date <- index(all_returns[day])
   next_day_date <- index(all_returns[day + 1])
-
   
   if(day + recalc_freq > length(index(all_returns))){
     # Dont calculate if there is no days enough 
@@ -66,33 +67,33 @@ for(day in calc_period:length(all_returns)){
 
     calculation_chunk <- all_returns[(day-calc_period+1):day]
 
-    # Get companies which are in index in given on portfolio recalculation
-    companies_in_index <- CompaniesInIndex(date, share_data)
+    # Get companies which are in index at the next day
+    companies_in_index_for_the_next_day <- CompaniesInIndex(next_day_date, share_data)
     
-    # Get comapnies which enough quotations (quantity valid with `calc_peroid`)
+    # Get comapnies with enough quotations (quantity valid with `calc_peroid`)
     companies_valid_number_of_quotations <-
-      CompaniesWithRightQuotations(companies_in_index, calculation_chunk)
+      CompaniesWithRightQuotations(companies_in_index_for_the_next_day, calculation_chunk)
     
     # Get companies which are indicated by the portfolio strategy
-    chosen_companies <-
-      CompaniesStrategyChosen(companies_valid_number_of_quotations, calculation_chunk)
+    chosen_companies_for_the_next_day <-
+      CompaniesStrategyChosen(companies_valid_number_of_quotations, calculation_chunk, strategy)
 
     # Calculate min risk portfolio for given tickers
-    min_portfolio_chunk <- calculation_chunk[,chosen_companies]
+    min_portfolio_chunk <- calculation_chunk[,chosen_companies_for_the_next_day]
     min_risk_weights <- ComputeMinPortfolio(min_portfolio_chunk, Spec, Constraints)
     min_risk_weights <- t(as.data.frame(min_risk_weights))
     
     # Add other companies with 0 weights
-    lacking_companies <- setdiff(all_companies_tickers, chosen_companies)
+    lacking_companies <- setdiff(all_companies_tickers, chosen_companies_for_the_next_day)
     lacking_comapnies_matrix <- matrix(ncol = length(lacking_companies))
     lacking_comapnies_matrix[1,] <- numeric(length(lacking_companies))
     lacking_comapnies_df <- data.frame(lacking_comapnies_matrix)
     colnames(lacking_comapnies_df) <- lacking_companies
     min_risk_weights_with_lacking <- cbind(min_risk_weights, lacking_comapnies_df)
-    
-    # Sort new xts in order to add it into table with weights
+
+    # Sort new xts in order to add it into table with weights (Use existing ordered varibale)
     min_risk_weights_with_lacking_ordered <- min_risk_weights_with_lacking[,all_companies_tickers]
-    
+
     # Change weights to xts and set their date to next day
     current_weights <- xts(min_risk_weights_with_lacking_ordered,order.by = as.Date(next_day_date))
     
@@ -103,7 +104,7 @@ for(day in calc_period:length(all_returns)){
     # Add weights from current day to the next day with the next day date
     current_weights <- xts(coredata(min_portfolio_weights[date]), order.by = as.Date(next_day_date))
     min_portfolio_weights <- rbind(min_portfolio_weights, current_weights)
-    
+    companies_in_index <- CompaniesInIndex(date, share_data)
   }
   curr_i = curr_i + 1
 }
@@ -116,9 +117,8 @@ valid_period_all_returns <- all_returns[index(min_portfolio_weights)]
 ################
 ################
 
-
-
-############### EFFICIENCY STRATEGY PORTFOLIO
+# source("description_and_efficiency.R")
+############### STRATEGY PORTFOLIO
 # Calculate weighted mean for each day
 Mean_rr <- numeric(nrow(valid_period_all_returns))
 
@@ -128,13 +128,39 @@ for(i in 1:nrow(valid_period_all_returns)){
                               na.rm = TRUE)
 }
 valid_period_all_returns$Mean_rr <- Mean_rr
+Return.cumulative(valid_period_all_returns$Mean_rr)
+#####################
 
 
 
-############## EFFICIENCY MARKET PORTFOLIO
+
+
+
+
+############## INDEX
 # Adjust `stock_index_rr`
-stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
+stock_index_rr <- stock_index_rr[index(all_returns)]
+colnames(stock_index_rr) <- c("WIG30")
+valid_period_stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
+Return.cumulative(valid_period_stock_index_rr)
+# Efficiency 
+#####################
+
+
+
+
+
+############## NAIVE PORTFOLIO
+all_returns_only_when_in_index<- ReturnsWhenInIndex(all_returns, share_data)
+Mean_rr <- numeric(nrow(all_returns_only_when_in_index))
+
+
+all_returns_only_when_in_index$Mean_rr <- rowMeans(all_returns_only_when_in_index,
+                                                   na.rm = TRUE) 
 
 # Efficiency 
-Return.cumulative(valid_period_all_returns$Mean_rr)
+Return.cumulative(all_returns_only_when_in_index$Mean_rr)
+#####################
+
+
   

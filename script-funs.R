@@ -16,8 +16,25 @@ CompaniesWithRightQuotations <- function(tickers, chunk){
   return(updated_tickers)
 }
 
-CompaniesStrategyChosen <- function(tickers, chunk){
-  tickers
+CompaniesStrategyChosen <- function(tickers, chunk, strategy){
+  # This function returns companies tickers choosen by user set strategy
+  
+  if(strategy == 1){
+    # Return all given companies
+    tickers
+  } else if(strategy == 2){
+    # Select compnies whose average price was > 0
+    RisingCompanies(tickers, chunk)
+  } else if(strategy == 3){
+    # Select compnies whose average price was < 0
+    FallingCompanies(tickers, chunk)
+  } else if(strategy == 4){
+    # Select random number of random companies
+    # Number of selected companies has to be lower than number of comapnies passed in
+    random_number <- sample(c(1:length(tickers)), 1)
+    companies <- sample(tickers, random_number)
+    return(companies)
+  }
 }
 
 ComputeMinPortfolio <- function(data, Spec, Constraints){
@@ -27,23 +44,14 @@ ComputeMinPortfolio <- function(data, Spec, Constraints){
   results@portfolio@portfolio$weights
 }
   
-  # Compute initial weigths
- # min_portfolio_result <- minriskPortfolio(as.timeSeries(data), na.rm = TRUE)
-  #initial_weights <- min_portfolio_result@spec@portfolio$weights
-  
-  # Create weigths with comapnies names
-#  m <- matrix(0, ncol = length(initial_weights), nrow = 0)
- # portfolio_comapnies <- data.frame(m)
-  #portfolio_comapnies[1,] <- initial_weights
-  #names(portfolio_comapnies) <- names(data)
-  # return(portfolio_comapnies)
-
-
-
-ComputeVariableMinPortfolio <- function(data){
-  # Computes weigths for min risk portfolio for given data
-  # Considers lack of some stock quotes
-  # Returns data frame with comapny names and weights
+RisingCompanies <- function(tickers, chunk){
   
 }
 
+FallingCompanies <- function(tickers, chunk){
+  
+}
+
+ReturnsWhenInIndex <- function(all_returns, share_data){
+  
+}
