@@ -1,7 +1,3 @@
-# Install necessary packages
-# install.packages()o
-# install.packages(qrmdata)
-
 # Load libraries
 library(fPortfolio)
 library(PerformanceAnalytics) #portfolio min
@@ -34,9 +30,6 @@ all_returns <- all_returns[paste(start_date, "/", end_date, sep = "")]
 # Get vector with tickers of all companies
 all_companies_tickers <- colnames(all_returns)
 
-
-  
-  
 ################ Build xts with portfolio weights according to given strategy
 ################
 # Portfolio weights for rebalancing are carried out at the and of trading day
@@ -120,8 +113,7 @@ valid_period_all_returns <- all_returns[index(min_portfolio_weights)]
 ################
 ################
 
-# source("description_and_efficiency.R")
-############### STRATEGY PORTFOLIO
+############### STRATEGY PORTFOLIO Efficiency 
 # Calculate weighted mean for each day
 Mean_rr <- numeric(nrow(valid_period_all_returns))
 
@@ -161,7 +153,6 @@ Mean_rr <- numeric(nrow(all_returns_only_when_in_index))
 all_returns_only_when_in_index$Mean_rr <- rowMeans(all_returns_only_when_in_index,
                                                    na.rm = TRUE) 
 
-# Efficiency 
 Return.cumulative(all_returns_only_when_in_index$Mean_rr)
 #####################
 
