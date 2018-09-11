@@ -113,6 +113,20 @@ valid_period_all_returns <- all_returns[index(min_portfolio_weights)]
 ################
 ################
 
+############## INDEX Efficiency 
+# Adjust `stock_index_rr`
+stock_index_rr <- stock_index_rr[index(all_returns)]
+colnames(stock_index_rr) <- c("WIG30TR")
+valid_period_stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
+
+Return.cumulative(valid_period_stock_index_rr)
+sd(valid_period_stock_index_rr)
+SharpeRatio(valid_period_stock_index_rr)
+CAPM.beta(valid_period_stock_index_rr, valid_period_stock_index_rr)
+TreynorRatio(valid_period_stock_index_rr, valid_period_stock_index_rr)
+CAPM.jensenAlpha(valid_period_stock_index_rr, valid_period_stock_index_rr)
+#####################
+
 ############### STRATEGY PORTFOLIO Efficiency 
 # Calculate weighted mean for each day
 Mean_rr <- numeric(nrow(valid_period_all_returns))
@@ -123,37 +137,31 @@ for(i in 1:nrow(valid_period_all_returns)){
                               na.rm = TRUE)
 }
 valid_period_all_returns$Mean_rr <- Mean_rr
+
 Return.cumulative(valid_period_all_returns$Mean_rr)
+sd(valid_period_all_returns$Mean_rr)
+SharpeRatio(valid_period_all_returns$Mean_rr)
+CAPM.beta(valid_period_all_returns$Mean_rr, valid_period_stock_index_rr)
+TreynorRatio(valid_period_all_returns$Mean_rr, valid_period_stock_index_rr)
+CAPM.jensenAlpha(valid_period_all_returns$Mean_rr, valid_period_stock_index_rr)
 #####################
 
+############## NAIVE PORTFOLIO Efficiency 
+# With rates of return removed from all_retuns when given stock is not in index
+# naive portfolio daily rates of return can be calculated with rowMeans function
 
-
-
-
-
-
-############## INDEX
-# Adjust `stock_index_rr`
-stock_index_rr <- stock_index_rr[index(all_returns)]
-colnames(stock_index_rr) <- c("WIG30TR")
-valid_period_stock_index_rr <- stock_index_rr[index(min_portfolio_weights)]
-Return.cumulative(valid_period_stock_index_rr)
-# Efficiency 
-#####################
-
-
-
-
-
-############## NAIVE PORTFOLIO
 all_returns_only_when_in_index<- ReturnsWhenInIndex(all_returns, share_data)
-Mean_rr <- numeric(nrow(all_returns_only_when_in_index))
+all_returns_only_when_in_index_valid_period <-
+  all_returns_only_when_in_index[index(min_portfolio_weights)]
+all_returns_only_when_in_index_valid_period$Mean_rr <-
+  rowMeans(all_returns_only_when_in_index_valid_period, na.rm = TRUE)
 
-
-all_returns_only_when_in_index$Mean_rr <- rowMeans(all_returns_only_when_in_index,
-                                                   na.rm = TRUE) 
-
-Return.cumulative(all_returns_only_when_in_index$Mean_rr)
+Return.cumulative(all_returns_only_when_in_index_valid_period$Mean_rr)
+sd(all_returns_only_when_in_index_valid_period$Mean_rr)
+SharpeRatio(all_returns_only_when_in_index_valid_period$Mean_rr)
+CAPM.beta(all_returns_only_when_in_index_valid_period$Mean_rr, valid_period_stock_index_rr)
+TreynorRatio(all_returns_only_when_in_index_valid_period$Mean_rr, valid_period_stock_index_rr)
+CAPM.jensenAlpha(all_returns_only_when_in_index_valid_period$Mean_rr, valid_period_stock_index_rr)
 #####################
 
 
