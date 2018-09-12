@@ -71,5 +71,32 @@ FallingCompanies <- function(tickers, chunk){
 }
 
 ReturnsWhenInIndex <- function(all_returns, share_data){
-  
+  # Adjust dates in share_data 
+  # Add 3 days to fridays with newly calculated share data
+  updated_all_returns <- all_returns
+  updated_share_data <- share_data
+  index(updated_share_data) <- index(share_data) + 3
+  for(i in 1:length(index(all_returns))){
+    for(j in 1:length(colnames(all_returns))){
+      return_opts <- all_returns[i,j]
+      ticker <- colnames(return_opts)
+      date <- index(return_opts)
+      return <- coredata(return_opts)[1]
+      if(IsInIndex(ticker, date, updated_share_data)){
+        updated_all_returns[i,j] <- return
+      } else {
+        updated_all_returns[i,j] <- 0
+      }
+    }
+  } 
+  return(updated_all_returns)
+}
+
+IsInIndex <- function(ticker, date, share_data){
+  composition_date <- tail(index(share_data[paste("/", date, sep = "")]), n = 1)
+  row_for_date <- share_data[composition_date]
+  if(!is.na(row_for_date[,ticker])){
+    return(TRUE)
+  }
+  return(FALSE)
 }
